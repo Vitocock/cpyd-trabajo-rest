@@ -5,6 +5,7 @@ para consultar el resumen estadístico con filtros opcionales.
 """
 
 import logging
+from datetime import date
 from typing import Optional
 
 from fastapi import APIRouter, Query
@@ -41,7 +42,7 @@ async def get_estadisticas(
         None,
         description="Filtrar por género: No especificado, Masculino, Femenino, Otro",
     ),
-    EDAD: Optional[str] = Query(
+    EDAD: Optional[int] = Query(
         None,
         description="Filtrar por edad (número entero)",
     ),
@@ -49,7 +50,7 @@ async def get_estadisticas(
         None,
         description="Filtrar por canal: POS, WEB, APP, CCT, APR, WPR",
     ),
-    CODIGO_PRODUCTO: Optional[str] = Query(
+    CODIGO_PRODUCTO: Optional[int] = Query(
         None,
         description="Filtrar por código de producto (SKU)",
     ),
@@ -57,17 +58,17 @@ async def get_estadisticas(
         None,
         description="Filtrar por ID de persona (UUID del cliente)",
     ),
-    LOCAL: Optional[str] = Query(
+    LOCAL: Optional[int] = Query(
         None,
         description="Filtrar por número de local",
     ),
-    FECHA_DESDE: Optional[str] = Query(
+    FECHA_DESDE: Optional[date] = Query(
         None,
-        description="Fecha desde (ISO-8601)",
+        description="Fecha desde (ej: 2024-01-01)",
     ),
-    FECHA_HASTA: Optional[str] = Query(
+    FECHA_HASTA: Optional[date] = Query(
         None,
-        description="Fecha hasta (ISO-8601)",
+        description="Fecha hasta (ej: 2024-12-31)",
     ),
 ) -> EstadisticasResponse:
     """GET /v1/estadisticas/ventas — Estadísticas con filtros via query params."""
@@ -89,7 +90,7 @@ async def get_estadisticas(
 
         for nombre, valor in params.items():
             if valor is not None:
-                consultas.append(ConsultaItem(consulta=nombre, valor=valor))
+                consultas.append(ConsultaItem(consulta=nombre, valor=str(valor)))
 
         # Si hay filtros, validar y aplicar
         if consultas:
