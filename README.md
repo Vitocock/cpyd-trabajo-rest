@@ -26,6 +26,15 @@ cd cruz-morada-3
 pip install -r requirements.txt
 ```
 
+## Descarga de Datos
+
+Antes de ejecutar el servidor, debes descargar el archivo CSV original. Para facilitar este proceso, el proyecto incluye un script que lo descarga automáticamente desde Google Drive.
+
+```bash
+# Descargar ventas_completas.csv
+python descargar_datos.py
+```
+
 ## Ejecución
 
 ```bash
@@ -183,6 +192,7 @@ Todas las respuestas de error siguen este formato:
 ```
 cruz-morada-3/
 ├── ventas_completas.csv          # Datos de ventas (CSV ~665 MB)
+├── descargar_datos.py            # Script automatizado para descargar el CSV
 ├── requirements.txt              # Dependencias Python
 ├── README.md                     # Este archivo
 ├── datos.json                    # Datos de prueba
@@ -230,3 +240,13 @@ pytest tests/ -v
 - **Pandas** - Procesamiento de datos
 - **NumPy** - Cálculos numéricos
 - **Pydantic** - Validación de schemas
+
+## Rendimiento y Optimización de Memoria
+
+El servicio implementa un uso altamente eficiente de la memoria RAM gracias a la parametrización de `pandas`. 
+
+Aunque el archivo CSV original tiene un peso de **~665 MB**, los datos cargados en el `data_store` de la API solo consumen alrededor de **~528 MB** de memoria RAM. Esto se logra mediante:
+
+1. **Uso de Datos Categóricos:** Columnas repetitivas como `CANAL` o `GENERO` se guardan como el tipo nativo `category`, almacenando las palabras en un diccionario interno y utilizando pequeños enteros para hacer referencia a ellas.
+2. **Tipos Numéricos Reducidos:** Cast explícito de datos a `int32` o `int64` (en vez de almacenarlos como cadenas de caracteres o strings gigantes, como vienen en el CSV).
+3. **Descarte de Columnas:** Eliminación temprana de columnas intermedias. Por ejemplo, `FECHA NACIMIENTO` se procesa rápidamente para calcular la `EDAD` y luego se desecha de la memoria.

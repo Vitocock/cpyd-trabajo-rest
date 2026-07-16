@@ -233,18 +233,33 @@
       }
     },
     {
-      "nombre": "Error 400 - LOCAL no numérico",
-      "metodo": "POST",
+      "nombre": "Error 500 - Datos no cargados",
+      "metodo": "GET",
       "url": "/v1/estadisticas/ventas",
-      "body": {
-        "consultas": [
-          {"consulta": "LOCAL", "valor": "qwerqwer"}
-        ]
-      },
+      "respuesta_esperada": {
+        "status": 500,
+        "ejemplo": {
+          "detail": "Los datos de ventas aún no han sido cargados. Espere a que la aplicación termine de iniciar.",
+          "instance": "/v1/estadisticas/ventas",
+          "status": 500,
+          "title": "Internal Server Error",
+          "type": "https://developer.mozilla.org/es/docs/Web/HTTP/Reference/Status/500",
+          "timestamp": "2026-06-30T20:44:49.201437Z",
+          "errorCode": "IE",
+          "errorLabel": "Error Interno",
+          "method": "GET"
+        }
+      }
+    },
+    {
+      "nombre": "Error 400 - EDAD negativa",
+      "metodo": "GET",
+      "url": "/v1/estadisticas/ventas?GENERO=Femenino&EDAD=-5",
+      "body": null,
       "respuesta_esperada": {
         "status": 400,
         "ejemplo": {
-          "detail": "El valor 'qwerqwer' no es un número entero válido para el ID de tienda",
+          "detail": "El valor '-5' no es una edad válida. Debe ser un número entero entre 0 y 200",
           "instance": "/v1/estadisticas/ventas",
           "status": 400,
           "title": "Bad Request",
@@ -252,7 +267,27 @@
           "timestamp": "2026-06-30T20:44:49.201437Z",
           "errorCode": "VF",
           "errorLabel": "Validación Fallida",
-          "method": "POST"
+          "method": "GET"
+        }
+      }
+    },
+    {
+      "nombre": "Error 400 - EDAD muy alta",
+      "metodo": "GET",
+      "url": "/v1/estadisticas/ventas?EDAD=250",
+      "body": null,
+      "respuesta_esperada": {
+        "status": 400,
+        "ejemplo": {
+          "detail": "El valor '250' no es una edad válida. Debe ser un número entero entre 0 y 200",
+          "instance": "/v1/estadisticas/ventas",
+          "status": 400,
+          "title": "Bad Request",
+          "type": "https://developer.mozilla.org/es/docs/Web/HTTP/Reference/Status/400",
+          "timestamp": "2026-06-30T20:44:49.201437Z",
+          "errorCode": "VF",
+          "errorLabel": "Validación Fallida",
+          "method": "GET"
         }
       }
     }
