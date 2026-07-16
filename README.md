@@ -1,5 +1,10 @@
 # Cruz Morada - API de Estadísticas de Ventas
 
+# Integrantes
+- Víctor Morales
+- Julián Vidal
+- Matías Ziade 
+
 Servicio REST desarrollado con **Python** y **FastAPI** que procesa un archivo CSV de gran volumen (~3.2 millones de registros) con datos de ventas de la cadena de farmacias Cruz Morada, y expone endpoints para consultar estadísticas con filtros dinámicos.
 
 ## Características
@@ -17,10 +22,19 @@ Servicio REST desarrollado con **Python** y **FastAPI** que procesa un archivo C
 
 ## Instalación
 
+Se recomienda el uso de un entorno virtual para evitar conflictos con paquetes del sistema (especialmente en distribuciones modernas de Linux).
+
 ```bash
 # Clonar el repositorio
-git clone <url-del-repositorio>
-cd cruz-morada-3
+git clone <https://github.com/Vitocock/cpyd-trabajo-rest.git>
+cd cpyd-trabajo-rest
+
+# Crear y activar entorno virtual (Linux/macOS)
+python3 -m venv venv
+source venv/bin/activate
+
+# Activar en Windows
+venv\Scripts\activate
 
 # Instalar dependencias
 pip install -r requirements.txt
