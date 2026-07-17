@@ -16,6 +16,11 @@ logger = logging.getLogger(__name__)
 
 def calcular_estadisticas(df: pd.DataFrame) -> EstadisticasResponse:
     """Calcula el resumen estadístico sobre la columna MONTO_APLICADO.
+    
+    Toma las filas de ventas (ya sean todas o solo las filtradas) y
+    calcula métricas como suma, promedio, y desviación estándar.
+    
+    Nota: La desviación estándar se calcula usando la fórmula poblacional (ddof=0).
 
     Args:
         df: DataFrame filtrado (o completo) con los datos de ventas.
@@ -56,13 +61,13 @@ def calcular_estadisticas(df: pd.DataFrame) -> EstadisticasResponse:
         desviacion_estandar = float(np.std(montos.values, ddof=0))
 
         return EstadisticasResponse(
-            suma=round(suma, 2),
+            suma=suma,
             conteo=conteo,
-            promedio=round(promedio, 2),
-            minimo=round(minimo, 2),
-            maximo=round(maximo, 2),
-            mediana=round(mediana, 2),
-            desviacion_estandar=round(desviacion_estandar, 2),
+            promedio=promedio,
+            minimo=minimo,
+            maximo=maximo,
+            mediana=mediana,
+            desviacion_estandar=desviacion_estandar,
         )
 
     except Exception as e:

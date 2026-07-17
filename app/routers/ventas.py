@@ -5,7 +5,6 @@ para consultar el resumen estadístico con filtros opcionales.
 """
 
 import logging
-from datetime import date
 from typing import Optional
 
 from fastapi import APIRouter, Query
@@ -62,11 +61,11 @@ async def get_estadisticas(
         None,
         description="Filtrar por número de local",
     ),
-    FECHA_DESDE: Optional[date] = Query(
+    FECHA_DESDE: Optional[str] = Query(
         None,
         description="Fecha desde (ej: 2024-01-01)",
     ),
-    FECHA_HASTA: Optional[date] = Query(
+    FECHA_HASTA: Optional[str] = Query(
         None,
         description="Fecha hasta (ej: 2024-12-31)",
     ),
