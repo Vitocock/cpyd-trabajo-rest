@@ -6,7 +6,7 @@ sean correctos y los aplica sobre el DataFrame.
 
 import logging
 from datetime import datetime
-from typing import Optional
+from typing import Any, Optional
 
 import pandas as pd
 
@@ -20,9 +20,6 @@ from app.errors.handlers import ValidationError
 from app.models import ConsultaItem
 
 logger = logging.getLogger(__name__)
-
-
-from typing import Any, Optional
 
 def validar_y_transformar_filtro(filtro: ConsultaItem) -> Any:
     """Valida que un filtro sea correcto y retorna su valor casteado.
@@ -46,12 +43,15 @@ def validar_y_transformar_filtro(filtro: ConsultaItem) -> Any:
         )
 
     if consulta == "GENERO":
-        if valor not in GENEROS_PERMITIDOS:
+        generos_lower = {g.lower(): g for g in GENEROS_PERMITIDOS}
+        valor_lower = valor.lower()
+        
+        if valor_lower not in generos_lower:
             raise ValidationError(
                 f"El valor '{valor}' no es válido para GENERO. "
                 f"Valores permitidos: {', '.join(GENEROS_PERMITIDOS)}"
             )
-        return valor
+        return generos_lower[valor_lower]
 
     elif consulta == "EDAD":
         try:
@@ -106,8 +106,7 @@ def validar_y_transformar_filtro(filtro: ConsultaItem) -> Any:
 
     elif consulta in ("FECHA_DESDE", "FECHA_HASTA"):
         try:
-            from datetime import datetime
-            # Validamos con fromisoformat para ser estrictos con ISO-8601
+            # Validamos con fromisoformat para ser estrictos con el formato
             # y retornamos pd.to_datetime para consistencia con Pandas
             dt = datetime.fromisoformat(valor)
             return pd.to_datetime(dt)

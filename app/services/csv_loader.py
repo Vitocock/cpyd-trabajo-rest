@@ -50,22 +50,28 @@ DTYPES = {
 
 
 def _procesar_chunk(chunk: pd.DataFrame) -> pd.DataFrame:
-    """Procesa un chunk del CSV: convierte tipos, calcula edad, mapea género.
+    """Limpia y transforma un fragmento (chunk) del CSV.
 
-    Esta función se ejecuta en un proceso separado para paralelismo.
+    Esta función corre en paralelo en distintos núcleos del procesador.
+    Se encarga de calcular nuevas columnas y achicar los tipos de datos
+    para que el DataFrame final no consuma tanta memoria RAM.
+
+    Específicamente:
+    - Calcula la 'EDAD' exacta usando la fecha de la venta y la fecha de nacimiento.
+    - Rellena los géneros vacíos con "No especificado".
+    - Convierte textos repetitivos a diccionarios internos de Pandas (tipo 'category') para ahorrar memoria.
 
     Args:
-        chunk: DataFrame con un fragmento del CSV sin procesar.
+        chunk: El bloque de filas del CSV recién leídas.
 
     Returns:
-        DataFrame procesado con columnas renombradas y tipos optimizados.
+        El mismo bloque de filas pero limpio y optimizado.
     """
     # Convertir FECHA a datetime
     chunk["FECHA"] = pd.to_datetime(chunk["FECHA"], format="ISO8601", errors="coerce")
 
     # Calcular EDAD a partir de FECHA NACIMIENTO relativa a la FECHA de la transacción
     # Se usa cálculo vectorizado para evitar overflow con timedelta en fechas antiguas
-    import numpy as np
 
     fecha_nac = pd.to_datetime(
         chunk["FECHA NACIMIENTO"], format="%Y-%m-%d", errors="coerce"

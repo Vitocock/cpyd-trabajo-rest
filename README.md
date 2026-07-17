@@ -24,37 +24,26 @@ Servicio REST desarrollado con **Python** y **FastAPI** que procesa un archivo C
 
 Se recomienda el uso de un entorno virtual para evitar conflictos con paquetes del sistema (especialmente en distribuciones modernas de Linux).
 
-```bash
-# Clonar el repositorio
-git clone <https://github.com/Vitocock/cpyd-trabajo-rest.git>
-cd cpyd-trabajo-rest
+1. Clona el repositorio:
+   ```bash
+   git clone <https://github.com/Vitocock/cpyd-trabajo-rest.git>
+   cd cpyd-trabajo-rest
+   ```
 
-# Crear y activar entorno virtual (Linux/macOS)
-python3 -m venv venv
-source venv/bin/activate
+2. Crea un entorno virtual e instala las dependencias:
+   ```bash
+   python -m venv venv
+   # En Windows: venv\Scripts\activate
+   # En Linux/Mac: source venv/bin/activate
+   pip install -r requirements.txt
+   ```
 
-# Activar en Windows
-venv\Scripts\activate
-
-# Instalar dependencias
-pip install -r requirements.txt
-```
-
-## Descarga de Datos
-
-Antes de ejecutar el servidor, debes descargar el archivo CSV original. Para facilitar este proceso, el proyecto incluye un script que lo descarga automáticamente desde Google Drive.
-
-```bash
-# Descargar ventas_completas.csv
-python descargar_datos.py
-```
-
-## Ejecución
-
-```bash
-# Iniciar el servidor
-python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
-```
+3. **Inicia la aplicación con un solo comando:**
+   El proyecto incluye un script de arranque unificado (`run.py`). Este script funciona de manera completamente desatendida: verifica si tienes el CSV gigante descargado, si no lo tienes lo descarga automáticamente desde Google Drive, e inmediatamente después levanta el servidor de la API, el cual procesará y cargará los datos en RAM.
+   
+   ```bash
+   python run.py
+   ```
 
 Al iniciar, la aplicación cargará automáticamente el archivo `ventas_completas.csv` desde la raíz del proyecto. Verás en los logs el progreso de la carga:
 
@@ -130,13 +119,13 @@ curl -X POST http://127.0.0.1:8000/v1/estadisticas/ventas \
 
 ```json
 {
-  "suma": 1500.5,
-  "conteo": 42,
-  "promedio": 35.73,
-  "minimo": 10.0,
-  "maximo": 100.0,
-  "mediana": 30.0,
-  "desviacion_estandar": 25.4
+  "suma": 20649356290.0,
+  "conteo": 2086258,
+  "promedio": 9897.8,
+  "minimo": 15.0,
+  "maximo": 226475.0,
+  "mediana": 7476.0,
+  "desviacion_estandar": 14565.87
 }
 ```
 
@@ -144,14 +133,16 @@ curl -X POST http://127.0.0.1:8000/v1/estadisticas/ventas \
 
 | Filtro | Tipo | Valores permitidos | Ejemplo |
 |--------|------|--------------------|---------|
-| `GENERO` | string | `No especificado`, `Masculino`, `Femenino`, `Otro` | `"Femenino"` |
+| `GENERO` | string | `Masculino`, `Femenino`, `No especificado`, `Otro` | `"Femenino"` |
 | `EDAD` | entero | Número entero (0-200) | `"31"` |
 | `CANAL` | string | `POS`, `WEB`, `APP`, `CCT`, `APR`, `WPR` | `"POS"` |
 | `CODIGO_PRODUCTO` | entero | Código SKU del producto | `"201"` |
 | `ID_PERSONA` | string | UUID del cliente | `"7c44465b-9e50-3914-..."` |
 | `LOCAL` | entero | Número de local | `"371"` |
-| `FECHA_DESDE` | ISO-8601 | Fecha inicio del rango | `"2024-01-01T00:00:00"` |
-| `FECHA_HASTA` | ISO-8601 | Fecha fin del rango | `"2024-12-31T23:59:59"` |
+| `FECHA_DESDE` | fecha | Fecha inicio del rango (YYYY-MM-DD) | `"2024-01-01"` |
+| `FECHA_HASTA` | fecha | Fecha fin del rango (YYYY-MM-DD) | `"2024-12-31"` |
+
+> **Nota sobre GENERO:** El dataset actual contiene únicamente registros con valores `Masculino` y `Femenino`. Los filtros `No especificado` y `Otro` son aceptados por la API (según la especificación), pero retornarán `conteo: 0` dado que no existen registros con dichos valores en los datos de origen.
 
 ## Métricas Calculadas
 
@@ -204,9 +195,10 @@ Todas las respuestas de error siguen este formato:
 ## Estructura del Proyecto
 
 ```
-cruz-morada-3/
+cpyd-trabajo-rest/
 ├── ventas_completas.csv          # Datos de ventas (CSV ~665 MB)
-├── descargar_datos.py            # Script automatizado para descargar el CSV
+├── descargar_datos.py            # Script módulo de descarga desde GDrive
+├── run.py                        # Script de arranque unificado (descarga + API)
 ├── requirements.txt              # Dependencias Python
 ├── README.md                     # Este archivo
 ├── datos.json                    # Datos de prueba
@@ -231,19 +223,15 @@ cruz-morada-3/
     └── test_validators.py        # Tests de validaciones
 ```
 
-## Variables de Entorno (Opcionales)
 
-| Variable | Descripción | Default |
-|----------|-------------|---------|
-| `CSV_PATH` | Ruta al archivo CSV | `./ventas_completas.csv` |
-| `CHUNK_SIZE` | Tamaño de chunk para procesamiento | `100000` |
-| `MAX_WORKERS` | Número de workers paralelos | `4` |
 
 ## Tests
 
+Para ejecutar la batería completa de pruebas unitarias y de integración (asegúrate de estar en el entorno virtual):
+
 ```bash
 # Ejecutar todos los tests
-pytest tests/ -v
+python -m pytest tests/ -v
 ```
 
 ## Tecnologías
@@ -255,12 +243,33 @@ pytest tests/ -v
 - **NumPy** - Cálculos numéricos
 - **Pydantic** - Validación de schemas
 
-## Rendimiento y Optimización de Memoria
+## Justificación de Decisiones de Preprocesamiento
 
-El servicio implementa un uso altamente eficiente de la memoria RAM gracias a la parametrización de `pandas`. 
+El script de carga de datos (`app/services/csv_loader.py`) realiza las siguientes transformaciones para optimizar el rendimiento y asegurar que los datos estén limpios antes de recibrir consultas:
 
-Aunque el archivo CSV original tiene un peso de **~665 MB**, los datos cargados en el `data_store` de la API solo consumen alrededor de **~528 MB** de memoria RAM. Esto se logra mediante:
+1. **Cálculo de Variables:** La columna `EDAD` se calcula usando la `FECHA NACIMIENTO` y la fecha de la transacción. Después de calcularla, la columna de fecha de nacimiento original se elimina de la tabla para liberar espacio en la memoria RAM.
+2. **Tratamiento de Nulos:** Los valores vacíos en la columna `GENERO` se reemplazan por el texto `"No especificado"` para no perder esas ventas en las estadísticas totales. Si al calcular la edad da un valor negativo o inválido, se deja como nulo usando el tipo de dato `Int32` de Pandas (que soporta nulos sin colapsar).
+3. **Optimización de Memoria (Downcasting):** Se asignan tipos de datos más eficientes. Las columnas de texto que repiten pocos valores (`CANAL`, `GENERO`) se convierten al tipo `category` de Pandas (que funciona como un diccionario numérico interno). Los campos numéricos se achican a `int32` e `int64`. Gracias a esto, el archivo CSV de ~665 MB termina ocupando solo ~528 MB en la memoria.
 
-1. **Uso de Datos Categóricos:** Columnas repetitivas como `CANAL` o `GENERO` se guardan como el tipo nativo `category`, almacenando las palabras en un diccionario interno y utilizando pequeños enteros para hacer referencia a ellas.
-2. **Tipos Numéricos Reducidos:** Cast explícito de datos a `int32` o `int64` (en vez de almacenarlos como cadenas de caracteres o strings gigantes, como vienen en el CSV).
-3. **Descarte de Columnas:** Eliminación temprana de columnas intermedias. Por ejemplo, `FECHA NACIMIENTO` se procesa rápidamente para calcular la `EDAD` y luego se desecha de la memoria.
+## Escalabilidad y Bajo Consumo de Recursos
+
+Para poder cargar los ~ 3.2 millones de registros (~665 MB) rápido y sin que se trabe el servidor, el sistema utiliza dos estrategias principales:
+
+**1. Procesamiento Paralelo (Escalabilidad de CPU):**
+Debido a la restricción del GIL (Global Interpreter Lock) de Python, un enfoque secuencial utilizaría únicamente un núcleo del procesador. El servicio sortea esta limitación mediante el uso de `concurrent.futures.ProcessPoolExecutor`. Este mecanismo genera procesos paralelos independientes que distribuyen la carga computacional de transformación de datos (parseo de fechas, cálculo de edades y mapeos categóricos) a través de los múltiples núcleos disponibles de la CPU (`MAX_WORKERS=4`). Esto garantiza que el sistema escale de forma concurrente ante incrementos masivos en el volumen de datos.
+
+**2. Técnica de Chunking y Downcasting:**
+En lugar de intentar cargar todo el archivo de golpe a la memoria (lo que causaría un error de falta de RAM), el CSV se lee a trozos (chunks) en bloques de 100.000 filas usando el parámetro `chunksize`. A medida que se lee cada bloque, se aplican las reducciones de tipos de datos mencionadas anteriormente. 
+
+**Benchmark Base de Referencia:**
+- **Tiempo de carga asíncrona:** ~7.7 a 8.5 segundos.
+- **Hardware de pruebas:** AMD Ryzen 5 8400F, 16 GB de RAM DDR5 5600 MT/s, Almacenamiento SSD M.2 NVMe.
+- **Diseño Desatendido:** El sistema funciona completamente en segundo plano y carga el CSV de manera automática al arrancar el framework, sin necesidad de que un operador interactúe con la consola.
+
+## Detalles de las Estadísticas
+
+El archivo `stats_calculator.py` es el encargado de procesar los datos una vez que se aplican los filtros ingresados por el usuario.
+
+**Notas sobre el Cálculo:**
+- Los resultados (suma, promedio, mediana, etc.) se calculan exclusivamente sobre los datos que coincidan con los filtros de búsqueda y no representan a la tabla completa a menos que se haga una consulta sin filtros.
+- Para el cálculo de la **desviación estándar** se utiliza la fórmula poblacional de numpy (`ddof=0`), asumiendo que los datos resultantes del filtro representan el total de la partición de interés y no una muestra.

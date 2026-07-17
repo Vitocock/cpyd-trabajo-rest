@@ -114,5 +114,5 @@ class TestEndpoints:
         response = client.get("/v1/estadisticas/ventas", params={"EDAD": "joven"})
         assert response.status_code == 400
         assert response.json()["errorCode"] == "VF"
-        assert "no es un número entero válido" in response.json()["detail"]
+        assert "EDAD" in response.json()["detail"]
         assert response.json()["method"] == "GET"

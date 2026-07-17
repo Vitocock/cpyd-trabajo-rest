@@ -98,8 +98,8 @@
       "url": "/v1/estadisticas/ventas",
       "body": {
         "consultas": [
-          {"consulta": "FECHA_DESDE", "valor": "2024-01-01T00:00:00"},
-          {"consulta": "FECHA_HASTA", "valor": "2024-06-30T23:59:59"}
+          {"consulta": "FECHA_DESDE", "valor": "2024-01-01"},
+          {"consulta": "FECHA_HASTA", "valor": "2024-06-30"}
         ]
       },
       "respuesta_esperada": {
@@ -129,8 +129,8 @@
         "consultas": [
           {"consulta": "GENERO", "valor": "Masculino"},
           {"consulta": "CANAL", "valor": "POS"},
-          {"consulta": "FECHA_DESDE", "valor": "2024-01-01T00:00:00"},
-          {"consulta": "FECHA_HASTA", "valor": "2024-12-31T23:59:59"}
+          {"consulta": "FECHA_DESDE", "valor": "2024-01-01"},
+          {"consulta": "FECHA_HASTA", "valor": "2024-12-31"}
         ]
       },
       "respuesta_esperada": {
